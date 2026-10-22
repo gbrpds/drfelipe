@@ -22,8 +22,31 @@
     });
   });
 
+  // Títulos: quebra em palavras para a animação em sequência
+  document.querySelectorAll("[data-split]").forEach(function (el) {
+    var n = 0;
+    var quebrar = function (no) {
+      [].slice.call(no.childNodes).forEach(function (filho) {
+        if (filho.nodeType === 3) {
+          var frag = document.createDocumentFragment();
+          filho.textContent.split(/(\s+)/).forEach(function (parte) {
+            if (!parte) return;
+            if (/^\s+$/.test(parte)) { frag.appendChild(document.createTextNode(parte)); return; }
+            var w = document.createElement("span"); w.className = "w";
+            var i = document.createElement("span"); i.textContent = parte; i.style.setProperty("--wi", n++);
+            w.appendChild(i); frag.appendChild(w);
+          });
+          no.replaceChild(frag, filho);
+        } else if (filho.nodeType === 1 && filho.tagName !== "BR") {
+          quebrar(filho);
+        }
+      });
+    };
+    quebrar(el);
+  });
+
   // Revelar ao rolar
-  var reveals = document.querySelectorAll(".reveal");
+  var reveals = document.querySelectorAll(".reveal, [data-split], .img-reveal, .grifo:not(.hero .grifo)");
   if ("IntersectionObserver" in window && !reduz) {
     var obs = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
@@ -110,20 +133,58 @@
     msgs.forEach(function (m) { m.classList.add("is-in", "is-typed"); });
   }
 
-  // Parallax leve dos polaroids decorativos
-  var decos = document.querySelectorAll(".deco[data-speed]");
-  if (decos.length && !reduz) {
-    var tick = false;
-    var mover = function () {
-      decos.forEach(function (el) {
-        var r = el.parentElement.getBoundingClientRect();
-        var v = parseFloat(el.dataset.speed) || 0.1;
-        el.style.transform = "translateY(" + (-(r.top) * v).toFixed(1) + "px)";
-      });
-      tick = false;
+  // Barra de progresso de leitura
+  var barra = document.querySelector(".progress");
+  if (barra) {
+    var atualizar = function () {
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      barra.style.transform = "scaleX(" + (h > 0 ? window.scrollY / h : 0) + ")";
     };
-    window.addEventListener("scroll", function () { if (!tick) { tick = true; requestAnimationFrame(mover); } }, { passive: true });
-    mover();
+    window.addEventListener("scroll", atualizar, { passive: true });
+    atualizar();
+  }
+
+  // Contadores
+  var contadores = document.querySelectorAll("[data-count]");
+  if ("IntersectionObserver" in window) {
+    var co = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target, fim = parseFloat(el.dataset.count), ini = performance.now(), dur = 1600;
+        if (reduz) { el.textContent = fim; co.unobserve(el); return; }
+        var passo = function (t) {
+          var k = Math.min(1, (t - ini) / dur), ease = 1 - Math.pow(1 - k, 3);
+          el.textContent = Math.round(fim * ease);
+          if (k < 1) requestAnimationFrame(passo);
+        };
+        requestAnimationFrame(passo);
+        co.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+    contadores.forEach(function (el) { co.observe(el); });
+  }
+
+  // Luz que segue o cursor nos cards
+  document.querySelectorAll(".spot").forEach(function (el) {
+    el.addEventListener("pointermove", function (e) {
+      var r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", (e.clientX - r.left) + "px");
+      el.style.setProperty("--my", (e.clientY - r.top) + "px");
+    });
+  });
+
+  // Parallax da foto do hero
+  var heroFoto = document.querySelector(".hero-photo");
+  if (heroFoto && !reduz) {
+    var tk = false;
+    window.addEventListener("scroll", function () {
+      if (tk) return; tk = true;
+      requestAnimationFrame(function () {
+        var y = Math.min(window.scrollY, window.innerHeight);
+        heroFoto.style.translate = "0 " + (y * 0.25).toFixed(1) + "px";
+        tk = false;
+      });
+    }, { passive: true });
   }
 
   // Formulário → WhatsApp
