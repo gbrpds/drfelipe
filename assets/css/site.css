@@ -716,3 +716,24 @@ body::after {
 .cta-checks { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 26px; }
 .cta-checks li { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--on-dark); }
 .cta-checks svg { color: var(--accent-on-dark); }
+
+/* ---------- Hero com retrato (foto de fundo escuro à direita) ---------- */
+.hero--retrato { background: #0a1215; }
+.hero--retrato .hero-photo {
+  left: auto; right: 0; width: min(62vw, 980px); height: 100%; object-fit: cover; object-position: 50% 12%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 34%); mask-image: linear-gradient(90deg, transparent 0%, #000 34%);
+}
+.hero--retrato .hero-veil {
+  background:
+    radial-gradient(60% 70% at 78% 30%, rgba(138, 16, 39, .18), transparent 70%),
+    linear-gradient(90deg, rgba(10, 18, 21, .92) 0%, rgba(10, 18, 21, .75) 42%, rgba(10, 18, 21, 0) 62%),
+    linear-gradient(0deg, rgba(10, 18, 21, .9) 0%, rgba(10, 18, 21, 0) 30%);
+}
+@media (max-width: 760px) {
+  .hero--retrato .hero-photo {
+    width: 100%; height: 62%; top: 0; object-position: 50% 8%;
+    -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%); mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+  }
+  .hero--retrato .hero-veil { background: linear-gradient(0deg, #0a1215 30%, rgba(10, 18, 21, .55) 60%, rgba(10, 18, 21, .1) 100%); }
+  .hero--retrato .hero-inner { padding-top: 52vh; }
+}
